@@ -6,13 +6,15 @@ using System.Threading.Tasks;
 
 namespace API.Store.Shared
 {
-    public class Order
+    public class OrderDetail
     {
-        public int Id { get; set; }
-        public int OrderNumber { get; set; }
-        public int ClientId { get; set; }
+        public int OrderId { get; set; }
+        public int ProductoId { get; set; }
+        public int Quantity { get; set; }
+
         public DateTime OrderDate { get; set; }
         public DateTime DeliveryDate { get; set; }
-        public List<OrderDetail> OrderDetails { get; set; }
+       
+
     }
 }
