@@ -1,5 +1,10 @@
+using API.Store.API.Configurations;
 using API.Store.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +19,37 @@ builder.Services.AddDbContext<APIStoreContext>(options=>
     options.UseSqlite(builder.Configuration.GetConnectionString("LiteSql"))
  );
 
+builder.Services.Configure<Security_Scret>(builder.Configuration.GetSection("Security"));
+
+var appSecurity = builder.Configuration.GetSection("Security").Get<Security_Scret>();
+var key = Encoding.ASCII.GetBytes(appSecurity.SigningKey);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
+})
+    .AddJwtBearer(jwt=>
+    {
+        jwt.SaveToken = true;
+        jwt.TokenValidationParameters = new TokenValidationParameters() {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer =  appSecurity.Issuer,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
+            //ValidateAudience = false,
+            //ValidAudience = appSecurity.Audience,
+            RequireExpirationTime =false
+        };
+    });
+
+builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddEntityFrameworkStores<APIStoreContext>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -24,7 +60,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

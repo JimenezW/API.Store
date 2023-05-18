@@ -1,10 +1,11 @@
 ﻿using API.Store.Shared;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 
 namespace API.Store.Data
 {
-    public class APIStoreContext : DbContext
+    public class APIStoreContext : IdentityDbContext
     {
         public APIStoreContext(DbContextOptions Options):base(Options)
         {
