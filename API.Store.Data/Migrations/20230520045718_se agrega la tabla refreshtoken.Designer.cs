@@ -3,6 +3,7 @@ using System;
 using API.Store.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Store.Data.Migrations
 {
     [DbContext(typeof(APIStoreContext))]
-    partial class APIStoreContextModelSnapshot : ModelSnapshot
+    [Migration("20230520045718_se agrega la tabla refreshtoken")]
+    partial class seagregalatablarefreshtoken
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.13");
