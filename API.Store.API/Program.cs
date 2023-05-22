@@ -72,7 +72,7 @@ var tokenValidationParameters = new TokenValidationParameters()
     ValidIssuer = appSecurity.Issuer,
     ValidateLifetime = true,
     ClockSkew = TimeSpan.Zero,
-    //ValidateAudience = false,
+    ValidateAudience = false,
     //ValidAudience = appSecurity.Audience,
     RequireExpirationTime = false
 };
