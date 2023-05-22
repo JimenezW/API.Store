@@ -128,7 +128,7 @@ namespace API.Store.API.Controllers
                 Result = false
             });
 
-            var results = VerifyAndGenerateTokenAsyn(tokenRequest);
+            var results = await VerifyAndGenerateTokenAsyn(tokenRequest);
 
             if(results == null) return BadRequest(new AuthResult
             {
@@ -201,7 +201,7 @@ namespace API.Store.API.Controllers
             var refreshToken = new RefreshToken
             {
                 JwtId = token.Id,
-                Token = RandomGenerator.GenerateRandomString(24),
+                Token = RandomGenerator.GenerateRandomString(50),
                 AddedDate = DateTime.Now,
                 ExpiryDate = DateTime.Now.AddDays(1),
                 IsRevoked = false,
