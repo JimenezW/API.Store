@@ -7,23 +7,39 @@ using Microsoft.EntityFrameworkCore;
 
 namespace API.Store.API.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase
     {
         private readonly APIStoreContext _context;
+        private readonly ILogger<ProductsController> _logger;
 
-        public ProductsController(APIStoreContext context)
+        public ProductsController(APIStoreContext context, ILogger<ProductsController> logger)
         {
             _context = context;
-            
+            _logger = logger;
+        }
+
+        [HttpGet("test")]
+        public async Task<string> test()
+        {
+            return "hola";
         }
 
         [HttpGet]
         public async Task<IEnumerable<Product>> get()
         {
-            return await _context.Products.ToListAsync();
+            _logger.LogWarning("get productos");
+            try
+            {
+                return await _context.Products.ToListAsync();
+            }catch(Exception ex)
+            {
+                _logger.LogWarning($"{ex.Message}");
+
+                return Enumerable.Empty<Product>();
+            }
         }
 
         [HttpGet("{id}")]

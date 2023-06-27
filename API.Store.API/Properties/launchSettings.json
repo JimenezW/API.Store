@@ -2,13 +2,13 @@
   "profiles": {
     "API.Store.API": {
       "commandName": "Project",
-      "launchBrowser": false,
+      "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://localhost:7034;http://localhost:5027"
+      "applicationUrl": "http://localhost:5027"
     },
     "IIS Express": {
       "commandName": "IISExpress",

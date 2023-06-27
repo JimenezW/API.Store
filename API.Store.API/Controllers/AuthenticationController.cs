@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NSwag.Annotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -19,7 +20,9 @@ using System.Text.Encodings.Web;
 
 namespace API.Store.API.Controllers
 {
+    [SwaggerTag("Authentication", Description = "API - Para el control de acceso a los usuarios")]
     [Route("api/[controller]")]
+    [Produces("application/json")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
@@ -42,7 +45,24 @@ namespace API.Store.API.Controllers
             _validationParametersToken = validationParametersToken;
 
         }
+        /// <summary>
+        /// Creacion de nuevos usuarios, confirmacion de nuevo usuario atraves de email
+        /// </summary>
+        /// <param name="request">Objeto request para obtener la informaicon</param>
+        /// <returns>Objet AuthResult, con valor "true" en la propiedad Result </returns>
+        /// <remarks>
+        ///  post
+        ///  {
+        ///     "name": "string",
+        ///     "emailAddress": "string",
+        ///     "password": "string"
+        /// }
+        /// </remarks>
+        /// <response code="201">Registro creado</response>
+        /// <response code="400">Error</response>
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> register([FromBody] UserRegistrationRequestDtos request)
         {
             if(!ModelState.IsValid) { return  BadRequest(ModelState); }

@@ -5,34 +5,44 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
+using NLog;
+using NLog.Web;
 
-var builder = WebApplication.CreateBuilder(args);
+var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+logger.Debug("init main");
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-
-/* Configuracion de SWAGGER */
-builder.Services.AddSwaggerGen(c=>
+try
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { 
-        Title="Store_API",
-        Version="v1",
-    });
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Add services to the container.
+
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+
+    /* Configuracion de SWAGGER */
+    builder.Services.AddSwaggerGen(c =>
     {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Beate scheme \r\n\r\n Enter prefix (Bearer), space, and the your token."
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        c.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Title = "Store_API",
+            Version = "v1",
+        });
+        c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+        {
+            Name = "Authorization",
+            Type = SecuritySchemeType.ApiKey,
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "JWT Authorization header using the Beate scheme \r\n\r\n Enter prefix (Bearer), space, and the your token."
+        });
+        c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
@@ -47,69 +57,92 @@ builder.Services.AddSwaggerGen(c=>
 
         }
     });
-});
 
-
-/* Configuracion de conexion a DB*/
-builder.Services.AddDbContext<APIStoreContext>(options=> 
-    options.UseSqlite(builder.Configuration.GetConnectionString("LiteSql"))
- );
-
-/* Configuraion Email */
-builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
-builder.Services.AddSingleton<IEmailSender, EmailService>();
-
-/* Configuracion JWT*/
-builder.Services.Configure<Security_Scret>(builder.Configuration.GetSection("Security"));
-var appSecurity = builder.Configuration.GetSection("Security").Get<Security_Scret>();
-var key = Encoding.ASCII.GetBytes(appSecurity.SigningKey);
-
-var tokenValidationParameters = new TokenValidationParameters()
-{
-    ValidateIssuerSigningKey = true,
-    IssuerSigningKey = new SymmetricSecurityKey(key),
-    ValidateIssuer = true,
-    ValidIssuer = appSecurity.Issuer,
-    ValidateLifetime = true,
-    ClockSkew = TimeSpan.Zero,
-    ValidateAudience = false,
-    //ValidAudience = appSecurity.Audience,
-    RequireExpirationTime = false
-};
-
-builder.Services.AddSingleton(tokenValidationParameters);
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-
-})
-    .AddJwtBearer(jwt=>
-    {
-        jwt.SaveToken = true;
-        jwt.TokenValidationParameters = tokenValidationParameters;
+        // using System.Reflection;
+        var xmlFilename = $"Json_StoreApi.xml";
+        c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     });
 
 
+    /* Configuracion de conexion a DB*/
+    builder.Services.AddDbContext<APIStoreContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("LiteSql"))
+     );
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
-    .AddEntityFrameworkStores<APIStoreContext>();
+    /* Configuraion Email */
+    builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+    builder.Services.AddSingleton<IEmailSender, EmailService>();
 
-var app = builder.Build();
+    /* Configuracion JWT*/
+    builder.Services.Configure<Security_Scret>(builder.Configuration.GetSection("Security"));
+    var appSecurity = builder.Configuration.GetSection("Security").Get<Security_Scret>();
+    var key = Encoding.ASCII.GetBytes(appSecurity.SigningKey);
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+    var tokenValidationParameters = new TokenValidationParameters()
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = true,
+        ValidIssuer = appSecurity.Issuer,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        ValidateAudience = false,
+        //ValidAudience = appSecurity.Audience,
+        RequireExpirationTime = false
+    };
+
+    builder.Services.AddSingleton(tokenValidationParameters);
+
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+
+    })
+        .AddJwtBearer(jwt =>
+        {
+            jwt.SaveToken = true;
+            jwt.TokenValidationParameters = tokenValidationParameters;
+        });
+
+
+
+    builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+        .AddEntityFrameworkStores<APIStoreContext>();
+
+    /*NLog*/
+    builder.Logging.ClearProviders();
+    builder.Host.UseNLog();
+
+
+    var app = builder.Build();
+
+    // Configure the HTTP request pipeline.
+    //if (app.Environment.IsDevelopment())
+    //{
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    //}
+
+    //app.UseHttpsRedirection();
+    app.UseAuthentication();
+    app.UseAuthorization();
+    app.Map("/", () => "Hola mundo");
+
+    app.MapControllers();
+
+    app.Run();
+}
+catch (Exception e)
+{
+    logger.Error(e, "There has been an error");
+    throw;
+}
+finally
+{
+    NLog.LogManager.Shutdown();
 }
 
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
 
-app.MapControllers();
-
-app.Run();
