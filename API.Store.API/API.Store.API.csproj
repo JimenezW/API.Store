@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>76139ac8-93ec-434b-b519-43a4fa952db8</UserSecretsId>
+   
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <DocumentationFile>Json_StoreApi.xml</DocumentationFile>
   </PropertyGroup>
